@@ -13,3 +13,11 @@ class AdminRequired(permissions.BasePermission):
             if obj.pk == user.pk:
                 return True
             return user.is_admin
+
+
+class IsNotAuthenticated(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if user.is_authenticated:
+            return False
+        return True
