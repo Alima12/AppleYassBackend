@@ -1,9 +1,11 @@
-from .serializers import UserSerializer, RegisterSerializer
+from .serializers import UserSerializer, RegisterSerializer, AddressSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
+from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from utils.base_permissions import AdminRequired, IsNotAuthenticated
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+from rest_framework.response import  Response
+from .models.Address import Address
 
 
 User = get_user_model()
@@ -32,3 +34,30 @@ class ProfileView(RetrieveUpdateDestroyAPIView):
 class RegisterUser(CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [IsNotAuthenticated]
+
+
+class AddressActionsView(CreateAPIView):
+    serializer_class = AddressSerializer
+
+
+class AddressActionsView(APIView):
+    serializer_class = AddressSerializer
+
+    def delete(self, request, id, *args, **kwargs):
+        user = request.user
+        address = get_object_or_404(Address, owner__id=user.id, id=id)
+        address.delete()
+        return Response(status=204)
+
+    def post(self, request, data=None):
+        user = request.user
+        data = request.POST
+        address = Address.objects.create(
+            city=data['city'],
+            rest_of=data['rest_of'],
+            owner=user
+        )
+        address.save()
+        return Response(AddressSerializer(address).data)
+
+
