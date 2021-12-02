@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import  Response
 from .models.Address import Address
 from rest_framework.permissions import IsAuthenticated
+from .models.images import Images
 
 
 User = get_user_model()
@@ -35,8 +36,19 @@ class ProfileView(RetrieveUpdateDestroyAPIView):
     def put(self, request):
         user = request.user
         data = request.POST
-        user
-        return Response({"msg":"Put Method"})
+        user.first_name = data['first_name']
+        user.last_name = data['last_name']
+        user.national_code = data['national_code']
+        user.save()
+        if 'image' in request.FILES.keys():
+            image = Images.objects.create(
+                image=request.FILES['image'],
+                owner=user
+            )
+            image.save()
+
+
+        return Response(UserSerializer(user).data)
 
 
 class RegisterUser(CreateAPIView):

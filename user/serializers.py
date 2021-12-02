@@ -8,9 +8,14 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(
+        write_only=True,
+        required=False
+    )
+
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "is_active", "date_joined", 'get_full_name', "email", "phone_number", "username", "address", "national_code", "is_admin", "images"]
+        fields = ["id", "image", "first_name", "last_name", "is_active", "date_joined", 'get_full_name', "email", "phone_number", "username", "address", "national_code", "is_admin", "images"]
         depth = 1
 
 
@@ -55,6 +60,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.username = validated_data['username']
         user.set_password(validated_data['password'])
+        # user.is_active = False
         user.save()
 
         return user
