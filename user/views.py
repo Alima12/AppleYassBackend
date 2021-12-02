@@ -6,6 +6,7 @@ from utils.base_permissions import AdminRequired, IsNotAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework.response import  Response
 from .models.Address import Address
+from rest_framework.permissions import IsAuthenticated
 
 
 User = get_user_model()
@@ -14,17 +15,18 @@ User = get_user_model()
 class UserListView(ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AdminRequired]
+    permission_classes = (IsAuthenticated, AdminRequired)
 
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [AdminRequired]
+    permission_classes = (IsAuthenticated, AdminRequired)
 
 
 class ProfileView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         user = get_object_or_404(User, pk=self.request.user.pk)
@@ -36,12 +38,9 @@ class RegisterUser(CreateAPIView):
     permission_classes = [IsNotAuthenticated]
 
 
-class AddressActionsView(CreateAPIView):
-    serializer_class = AddressSerializer
-
-
 class AddressActionsView(APIView):
     serializer_class = AddressSerializer
+    permission_classes = (IsAuthenticated,)
 
     def delete(self, request, id, *args, **kwargs):
         user = request.user
