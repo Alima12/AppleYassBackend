@@ -14,3 +14,6 @@ class Category(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
+
+    def __str__(self):
+        return f"{self.title}({self.name})"

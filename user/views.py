@@ -32,6 +32,12 @@ class ProfileView(RetrieveUpdateDestroyAPIView):
         user = get_object_or_404(User, pk=self.request.user.pk)
         return user
 
+    def put(self, request):
+        user = request.user
+        data = request.POST
+        user
+        return Response({"msg":"Put Method"})
+
 
 class RegisterUser(CreateAPIView):
     serializer_class = RegisterSerializer

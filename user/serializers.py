@@ -10,7 +10,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "is_active", "date_joined", 'get_full_name', "email", "phone_number", "username", "address", "national_code", "is_admin", "images"]
+        fields = ["id", "first_name", "last_name", "is_active", "date_joined", 'get_full_name', "email", "phone_number", "username", "address", "national_code", "is_admin", "images"]
         depth = 1
 
 
