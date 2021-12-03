@@ -8,12 +8,6 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-def get_file_path(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = '%s.%s' % (uuid.uuid4(), ext)
-    return os.path.join(f"product/{instance.code}/", filename)
-
-
 class Product(GeneramModel):
     code = models.CharField(
         max_length=20
@@ -44,7 +38,7 @@ class Product(GeneramModel):
     is_hot = models.BooleanField(
         default=False,
     )
-    categtory = models.ForeignKey(
+    category = models.ForeignKey(
         'category.Category',
         on_delete=models.SET_NULL,
         blank=True,
