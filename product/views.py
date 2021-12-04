@@ -1,6 +1,6 @@
-from .serializers import ProductSerializer, CreateProductSerializer
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
-from .models import Product
+from .serializers import ProductSerializer, CreateProductSerializer, ColorSerializer
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListCreateAPIView
+from .models import Product, Color
 from .permission import IsAdminOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -35,5 +35,9 @@ class CreateProductView(APIView):
             return Response(product.errors, status=400)
 
 
+class CreateColorView(ListCreateAPIView):
+    serializer_class = ColorSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = Color.objects.all()
 
 

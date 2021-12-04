@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product, Color
 from rest_framework.validators import UniqueValidator
 
 
@@ -59,6 +59,9 @@ class CreateProductSerializer(serializers.Serializer):
         default=False
     )
 
+    def validate(self, attrs):
+        return attrs
+
     def create(self, validated_data):
         product = Product.objects.create(
             code=validated_data['code'],
@@ -80,8 +83,30 @@ class CreateProductSerializer(serializers.Serializer):
             product.is_hot = validated_data['is_hot']
 
         product.save()
+
         return product
 
 
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ["id", "inventory", "price", "color", "product"]
 
+    def validate(self, attrs):
+        if 'price' not in attrs.keys():
+            attrs["price"] = 100000
 
+        if 'inventory' not in attrs.keys():
+            attrs["inventory"] = 1
+
+        return attrs
+
+    def create(self, validated_data):
+        color = Color.objects.create(
+            product=validated_data["product"],
+            color=validated_data["color"],
+        )
+        color.price = validated_data["price"]
+        color.inventory = validated_data["inventory"]
+        color.save()
+        return color
