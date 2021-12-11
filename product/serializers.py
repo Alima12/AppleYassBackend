@@ -88,9 +88,13 @@ class CreateProductSerializer(serializers.Serializer):
 
 
 class ColorSerializer(serializers.ModelSerializer):
+    product_code = serializers.CharField(
+        write_only=True
+    )
+
     class Meta:
         model = Color
-        fields = ["id", "inventory", "price", "color", "product"]
+        fields = ["id", "inventory", "price", "color", "product","product_code"]
 
     def validate(self, attrs):
         if 'price' not in attrs.keys():
@@ -98,6 +102,9 @@ class ColorSerializer(serializers.ModelSerializer):
 
         if 'inventory' not in attrs.keys():
             attrs["inventory"] = 1
+
+        if "product_code" in attrs.keys():
+            attrs["product"] = Product.objects.get(code=attrs["product_code"])
 
         return attrs
 
