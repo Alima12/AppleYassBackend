@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'panel.apps.PanelConfig',
     'product.apps.ProductConfig',
     'category.apps.CategoryConfig',
+    'transaction.apps.TransactionConfig',
+
     "corsheaders",
 
 ]

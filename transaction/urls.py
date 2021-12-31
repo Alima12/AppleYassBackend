@@ -1,0 +1,27 @@
+from django.urls import path
+from .views import (
+    OrderListView,
+    MyOrderListView,
+    TransactionListView,
+    ManageCart,
+    OrderItemView,
+    MyTransactionListView,
+    DiscountListCreateView,
+    DiscountDetailView,
+)
+
+
+urlpatterns = [
+    path('', TransactionListView.as_view()),
+    path('me/', MyTransactionListView.as_view()),
+
+    path('orders/', OrderListView.as_view()),
+    path('orders/me/', MyOrderListView.as_view()),
+    path("orderitems/", OrderItemView.as_view()),
+    path("order/addcart/", ManageCart.as_view()),
+    path("discounts/", DiscountListCreateView.as_view()),
+    path("discounts/<int:pk>/", DiscountDetailView.as_view()),
+
+
+
+]
