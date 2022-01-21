@@ -52,4 +52,10 @@ class Discount(GeneramModel):
             return True
         return False
 
+    def can_i_use(self, user):
+        if (self.is_used(user) or self.reUseAble) and self.is_active():
+            return True
+        return False
+
+
 

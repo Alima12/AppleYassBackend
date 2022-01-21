@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-0fh2&*bdzv6$l+z%_hcpxv&a2r_56lb(kf*oe@^zz(eq*6d^)h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = 'user.User'
 # Application definition
@@ -33,10 +33,11 @@ INSTALLED_APPS = [
 
 
     'user.apps.UserConfig',
-    'panel.apps.PanelConfig',
     'product.apps.ProductConfig',
     'category.apps.CategoryConfig',
     'transaction.apps.TransactionConfig',
+    'setting.apps.SettingConfig',
+
 
     "corsheaders",
 

@@ -1,5 +1,9 @@
 from .serializers import ProductSerializer, CreateProductSerializer, ColorSerializer
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListCreateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveUpdateDestroyAPIView,
+    ListCreateAPIView,
+)
 from .models import Product, Color, ProductImages
 from .permission import IsAdminOrReadOnly
 from rest_framework.views import APIView
@@ -7,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from utils.base_permissions import AdminRequired
 from rest_framework.response import Response
 from .pagination import ProductPagination
+from django.shortcuts import get_list_or_404
 
 
 class ProductListView(ListAPIView):
@@ -55,5 +60,42 @@ class CreateColorView(ListCreateAPIView):
     serializer_class = ColorSerializer
     permission_classes = (IsAuthenticated, AdminRequired)
     queryset = Color.objects.all()
+
+
+class GetColorView(APIView):
+    serializer_class = ColorSerializer
+
+    def get(self, request, code):
+        colors = Color.objects.filter(product__code=code)
+        response = ColorSerializer(colors, many=True)
+        return Response(
+            response.data
+        )
+
+
+class GetNewProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        response = []
+        result = Product.objects.all().order_by("-updated_at")
+        for item in result:
+            if item.is_new:
+                response.append(item)
+
+        return response[:5]
+
+
+class GetHotProducts(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        response = []
+        result = Product.objects.all().order_by("-updated_at")
+        for item in result:
+            if item.is_hot:
+                response.append(item)
+
+        return response[:5]
 
 

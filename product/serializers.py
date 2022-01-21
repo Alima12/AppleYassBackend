@@ -3,12 +3,44 @@ from .models import Product, Color
 from rest_framework.validators import UniqueValidator
 
 
+class ColorSerializer(serializers.ModelSerializer):
+    product_code = serializers.CharField(
+        write_only=True
+    )
+
+    class Meta:
+        model = Color
+        fields = ["id", "inventory", "get_price", "color", "product", "product_code", "is_super_offer"]
+        depth = 1
+
+    def validate(self, attrs):
+        if 'price' not in attrs.keys():
+            attrs["price"] = 100000
+
+        if 'inventory' not in attrs.keys():
+            attrs["inventory"] = 1
+
+        if "product_code" in attrs.keys():
+            attrs["product"] = Product.objects.get(code=attrs["product_code"])
+
+        return attrs
+
+    def create(self, validated_data):
+        color = Color.objects.create(
+            product=validated_data["product"],
+            color=validated_data["color"],
+        )
+        color.price = validated_data["price"]
+        color.inventory = validated_data["inventory"]
+        color.save()
+        return color
+
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
             "code",
-            "colors",
             "created_at",
             "updated_at",
             "title",
@@ -22,6 +54,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "images",
             "attributes",
             "technical",
+            "detail",
+            "rate"
         ]
         depth = 1
 
@@ -87,33 +121,3 @@ class CreateProductSerializer(serializers.Serializer):
         return product
 
 
-class ColorSerializer(serializers.ModelSerializer):
-    product_code = serializers.CharField(
-        write_only=True
-    )
-
-    class Meta:
-        model = Color
-        fields = ["id", "inventory", "price", "color", "product","product_code"]
-
-    def validate(self, attrs):
-        if 'price' not in attrs.keys():
-            attrs["price"] = 100000
-
-        if 'inventory' not in attrs.keys():
-            attrs["inventory"] = 1
-
-        if "product_code" in attrs.keys():
-            attrs["product"] = Product.objects.get(code=attrs["product_code"])
-
-        return attrs
-
-    def create(self, validated_data):
-        color = Color.objects.create(
-            product=validated_data["product"],
-            color=validated_data["color"],
-        )
-        color.price = validated_data["price"]
-        color.inventory = validated_data["inventory"]
-        color.save()
-        return color

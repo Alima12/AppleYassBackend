@@ -27,14 +27,27 @@ class OrderItemSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class ManageOrdersSerializer(serializers.Serializer):
+class ManageOrdersSerializer(serializers.ModelSerializer):
     count = serializers.IntegerField(
-        default=1
+        default=1,
+        write_only=True
     )
     color_id = serializers.CharField(
         required=True,
         write_only=True
     )
+    status = serializers.CharField(
+        read_only=True
+    )
+    refer_code = serializers.CharField(
+        read_only=True
+    )
+
+    class Meta:
+        model = Orders
+        exclude = ["customer"]
+        depth = 3
+
 
     def validate(self, attrs):
         color_id = int(attrs["color_id"])
@@ -43,26 +56,34 @@ class ManageOrdersSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        color = validated_data['color_id']
-        order_item = OrderItem.objects.create(
-            product=color,
-            count=validated_data["count"],
-            price=color.price,
-        )
-        order_item.save()
         user = self.context['request'].user
         order = Orders.objects.filter(status="p", customer=user)
         if order.count() > 0:
             order = order[0]
-            order.items.add(order_item)
         else:
             order = Orders.objects.create(
                 customer=user,
                 refer_code=uuid.uuid4().hex[:20].upper(),
             )
+        color = validated_data['color_id']
+        added = False
+        for item in order.items.all():
+            if item.product == color:
+                item.count += validated_data["count"]
+                item.save()
+                added = True
+        if not added:
+            order_item = OrderItem.objects.create(
+                product=color,
+                count=validated_data["count"],
+                price=color.price,
+            )
+            order_item.save()
             order.items.add(order_item)
+
+        order.calc_discount()
         order.save()
-        return color
+        return order
 
 
 class DiscountSerializer(serializers.ModelSerializer):

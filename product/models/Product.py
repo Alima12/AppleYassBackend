@@ -43,5 +43,6 @@ class Product(GeneramModel):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        related_name="products"
     )
 

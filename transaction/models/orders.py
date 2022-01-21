@@ -62,18 +62,17 @@ class Orders(GeneramModel):
     def get_total_price(self):
         _price = 0
         for item in self.items.all():
-            _price += item.unit_price * item.count
+            _price += item.price * item.count
         self.real_price = _price
         return _price
 
     def calc_discount(self):
         total_price = self.get_total_price()
         discount_amount = 0
-        if self.discount is not None and\
-                not self.discount.is_used(self.customer) or self.discount.reUseAble and\
-                not self.discount.is_active():
-            percent = self.discount.percent
-            discount_amount = (total_price * percent) / 100
+        if self.discount is not None:
+           if self.discount.is_active():
+                percent = self.discount.percent
+                discount_amount = (total_price * percent) / 100
         self.total_price = total_price - discount_amount
         self.save()
         return self.total_price

@@ -12,7 +12,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = "__all__"
+        fields = ["parent_id", "name", "title", "image", "parent", "children"]
         depth = 1
 
 
