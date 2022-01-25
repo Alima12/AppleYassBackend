@@ -19,9 +19,6 @@ class OwnerSerializer(serializers.Serializer):
     images = ImageSerializer(many=True)
 
 
-
-
-
 class CommentSerializer(serializers.ModelSerializer):
     parent_id = serializers.IntegerField(required=False, write_only=True)
     product_id = serializers.IntegerField(required=True, write_only=True)

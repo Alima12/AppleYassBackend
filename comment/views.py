@@ -9,7 +9,6 @@ from product.models import Product
 from django.shortcuts import get_object_or_404
 
 
-
 class CommentsListView(ListAPIView):
     queryset = Comments.objects.all()
     serializer_class = CommentSerializer
