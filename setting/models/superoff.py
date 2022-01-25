@@ -46,7 +46,6 @@ class SuperOffer(GeneramModel):
     transaction = models.ManyToManyField(
         "transaction.Transaction",
         related_name="forSuperOffer",
-        null=True,
         blank=True
     )
 

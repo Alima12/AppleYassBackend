@@ -1,6 +1,3 @@
-import uuid
-import os
-
 from utils.general_model import GeneramModel
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -10,7 +7,8 @@ User = get_user_model()
 
 class Product(GeneramModel):
     code = models.CharField(
-        max_length=20
+        max_length=20,
+        unique=True
     )
     title = models.CharField(
         max_length=200
