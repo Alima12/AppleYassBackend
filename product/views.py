@@ -11,7 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from utils.base_permissions import AdminRequired
 from rest_framework.response import Response
 from .pagination import ProductPagination
-from django.shortcuts import get_list_or_404
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from rest_framework import filters
 
 
 class ProductListView(ListAPIView):
@@ -99,3 +101,21 @@ class GetHotProducts(ListAPIView):
         return response[:5]
 
 
+class RelatedProductsView(ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        code = self.kwargs["code"]
+        product = get_object_or_404(Product, code=code)
+        result = Product.objects.filter(
+            Q(category=product.category)
+        ).exclude(code=code)
+        return result
+
+
+class FilterProducts(ListAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+    pagination_class = ProductPagination
+    filterset_fields = ['category__name', ]
+    search_fields = ["title", "name"]

@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'transaction.apps.TransactionConfig',
     'setting.apps.SettingConfig',
     'comment.apps.CommentConfig',
-
+    'django_filters',
     "corsheaders",
 
 ]
@@ -77,6 +77,8 @@ WSGI_APPLICATION = 'AppleYassBackend.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
+    "http://localhost:8081",
+
     "http://127.0.0.1:8080",
 ]
 # Database
@@ -144,6 +146,11 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+            'django_filters.rest_framework.DjangoFilterBackend',
+            'rest_framework.filters.SearchFilter',
+
     ],
 }
 
