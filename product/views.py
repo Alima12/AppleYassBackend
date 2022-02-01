@@ -115,7 +115,23 @@ class RelatedProductsView(ListAPIView):
 
 class FilterProducts(ListAPIView):
     serializer_class = ProductSerializer
-    queryset = Product.objects.all()
+    # queryset = Product.objects.all()
     pagination_class = ProductPagination
     filterset_fields = ['category__name', ]
     search_fields = ["title", "name"]
+
+    def get_queryset(self):
+        products = Product.objects.all()
+        args = self.request.query_params.get("available")
+        if args == "true" or args == "0":
+            for product in products:
+                count = 0
+                for color in product.colors.all():
+                    count += color.inventory
+                if count <= 0:
+                    products = products.exclude(id=product.id)
+
+        return products
+
+
+

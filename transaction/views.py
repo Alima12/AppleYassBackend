@@ -1,13 +1,22 @@
-from django.shortcuts import render
-from .serializers import OrderSerializer, TransactionSerializer, ManageOrdersSerializer, OrderItemSerializer, DiscountSerializer
+from .serializers import (
+    OrderSerializer,
+    TransactionSerializer,
+    ManageOrdersSerializer,
+    OrderItemSerializer,
+    DiscountSerializer,
+    SimpleProductSerializer,
+    SimpleColorSerializer,
+)
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.views import APIView
-from .models import Orders, Transaction, Cart, OrderItem, Discount
+from .models import Orders, Transaction, OrderItem, Discount
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from utils.base_permissions import AdminRequired, IsAdminOrReadOnly
+from utils.base_permissions import AdminRequired
 from product.models import Color
+from rest_framework.decorators import api_view
+from user.models import Address
 
 
 class OrderListView(ListAPIView):
@@ -72,7 +81,15 @@ class DiscountDetailView(RetrieveUpdateDestroyAPIView):
 class UpdateOrderItem(APIView):
 
     def post(self, request):
-        pass
+        user = request.user
+        order = Orders.objects.get(customer=user, status="p")
+        order.status = "c"
+        order.calc_discount()
+        order.save()
+        order = OrderSerializer(order)
+        return Response(
+            order.data
+        )
 
     def put(self, request, item):
         user = request.user
@@ -115,25 +132,28 @@ class DiscountDetail(APIView):
             order.discount = discount
             discount.customers.add(user)
             discount.save()
+            order.calc_discount()
             order.save()
-            return Response("کد تخفیف با موفقیت اعمال شد")
-        return Response("شما نمیتوانید از این کد تخفیف استفاده کنید")
-
-    def get(self, request, code):
-        user = request.user
-        discount = get_object_or_404(Discount, code=code)
-        order = Orders.objects.filter(customer=user, discount__code=discount.code).count()
-        if not discount.is_active():
-            msg = "مهلت استفاده از کد تخفیف مورد نظر به اتمام رسیده"
-        elif order > 0 and not discount.reUseAble:
-            msg = "شما قبلا از این کد تخفیف استاده کرده اید"
-        else:
             data = DiscountSerializer(discount)
             msg = data.data
+            return Response(msg)
+        return Response(data="شما نمیتوانید از این کد تخفیف استفاده کنید", status=403)
 
-        return Response(
-            msg
-        )
+    # def get(self, request, code):
+    #     user = request.user
+    #     discount = get_object_or_404(Discount, code=code)
+    #     order = Orders.objects.filter(customer=user, discount__code=discount.code).count()
+    #     if not discount.is_active():
+    #         msg = "مهلت استفاده از کد تخفیف مورد نظر به اتمام رسیده"
+    #     elif order > 0 and not discount.reUseAble:
+    #         msg = "شما قبلا از این کد تخفیف استاده کرده اید"
+    #     else:
+    #         data = DiscountSerializer(discount)
+    #         msg = data.data
+    #
+    #     return Response(
+    #         msg
+    #     )
 
     def delete(self, request):
         user = request.user
@@ -147,3 +167,73 @@ class DiscountDetail(APIView):
         return Response(
             status=204
         )
+
+
+class GetMyCheckout(APIView):
+
+    def post(self, request):
+        user = request.user
+        order = Orders.objects.get(customer=user, status="p")
+        order.status = "c"
+        order.calc_discount()
+        order.save()
+        for o in Orders.objects.filter(customer=user, status="c"):
+            if o.id != order.id:
+                o.status = "f"
+                o.save()
+
+        order = OrderSerializer(order)
+        return Response(
+            order.data
+        )
+
+    def get(self, request):
+        user = request.user
+        order = Orders.objects.get(customer=user, status="c")
+        order.calc_discount()
+        order = OrderSerializer(order)
+        return Response(
+            order.data
+        )
+
+
+class ShoppingItems(APIView):
+
+    def get(self, request, refer_code):
+        user = request.user
+        order = get_object_or_404(Orders, customer=user, refer_code=refer_code)
+        items = []
+        colors = []
+        for item in order.items.all():
+            __item = item.product.product
+            colors.append(item.product)
+            items.append(__item)
+
+        items = SimpleProductSerializer(items, many=True)
+        colors = SimpleColorSerializer(colors, many=True)
+        msg = {
+            "products": items.data,
+            "colors": colors.data
+        }
+
+        return Response(
+            msg
+        )
+
+
+@api_view(['POST'])
+def set_address(request, refer_code):
+    address_id = request.POST["addressID"]
+    user = request.user or None
+    if user is None:
+        return Response(
+            {"msg": "You must authenticate!"}
+        )
+
+    order = get_object_or_404(Orders, customer=user, refer_code=refer_code)
+    address = get_object_or_404(Address, owner=user, pk=address_id)
+    order.address = address
+    order.calc_discount()
+    order.save()
+    return Response("Success", status=200)
+

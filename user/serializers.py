@@ -68,7 +68,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['city', 'rest_of', "owner"]
+        fields = ["id", 'city', 'rest_of', "owner"]
 
 
 

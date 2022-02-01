@@ -1,15 +1,48 @@
 from rest_framework import serializers
 from .models import Orders, Transaction, OrderItem, Discount
-from product.models import Color
+from product.models import Color, Product
+
 from rest_framework.validators import UniqueValidator
 import uuid
+from user.models import Images
+from user.serializers import AddressSerializer
+
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ["images", "code", "name", "title"]
+        depth = 1
+
+
+class SimpleColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ["price", "color"]
+        depth = 1
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Images
+        fields = ["image"]
+
+
+class OwnerSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.CharField()
+    username = serializers.CharField()
+    images = ImageSerializer(many=True)
+    address = AddressSerializer(many=True)
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    customer = OwnerSerializer()
+
     class Meta:
         model = Orders
         fields = "__all__"
-        depth = 3
+        # depth = 1
 
 
 class TransactionSerializer(serializers.ModelSerializer):

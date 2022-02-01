@@ -2,6 +2,7 @@ from utils.general_model import GeneramModel
 from django.db import models
 from django.contrib.auth import get_user_model
 
+
 User = get_user_model()
 
 
@@ -25,7 +26,9 @@ class Orders(GeneramModel):
         ("a", "accepted"),
         ("s", "send to post"),
         ("d", "delivered"),
-        ("r", "returned")
+        ("r", "returned"),
+        ("f", "failed")
+
     )
     refer_code = models.CharField(
         max_length=60,
@@ -57,6 +60,12 @@ class Orders(GeneramModel):
     )
     real_price = models.PositiveIntegerField(
         default=0
+    )
+    address = models.ForeignKey(
+        "user.Address",
+        related_name="orders",
+        null=True,
+        on_delete=models.SET_NULL
     )
 
     def get_total_price(self):
