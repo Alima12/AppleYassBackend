@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models.comments import Comments
 from django.contrib.auth import get_user_model
 from user.models import Images
+from transaction.serializers import SimpleProductSerializer
 user = get_user_model()
 
 
@@ -23,6 +24,7 @@ class CommentSerializer(serializers.ModelSerializer):
     parent_id = serializers.IntegerField(required=False, write_only=True)
     product_id = serializers.IntegerField(required=True, write_only=True)
     owner = OwnerSerializer()
+    product = SimpleProductSerializer()
 
     class Meta:
         model = Comments

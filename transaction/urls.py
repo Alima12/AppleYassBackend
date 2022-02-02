@@ -36,6 +36,5 @@ urlpatterns = [
     path("discounts/<int:pk>/", DiscountDetailView.as_view()),
     path("discount/delete/", DiscountDetail.as_view()),
     path("discount/use/", DiscountDetail.as_view()),
-    # path("discount/<str:code>/", DiscountDetail.as_view()),
 
 ]

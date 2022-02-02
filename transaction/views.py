@@ -24,7 +24,7 @@ class OrderListView(ListAPIView):
     permission_classes = (IsAuthenticated, AdminRequired)
 
     def get_queryset(self):
-        return Orders.objects.all().exclude(status="p")
+        return Orders.objects.all().exclude(status__in=["f", "p"])
 
 
 class MyOrderListView(ListAPIView):
@@ -33,7 +33,7 @@ class MyOrderListView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Orders.objects.filter(customer=user).exclude(status="p")
+        return Orders.objects.filter(customer=user).exclude(status__in=["f", "p"])
 
 
 class TransactionListView(ListAPIView):
@@ -201,19 +201,25 @@ class ShoppingItems(APIView):
 
     def get(self, request, refer_code):
         user = request.user
-        order = get_object_or_404(Orders, customer=user, refer_code=refer_code)
+        if user.is_admin:
+            order = get_object_or_404(Orders, refer_code=refer_code)
+        else:
+            order = get_object_or_404(Orders, customer=user, refer_code=refer_code)
         items = []
         colors = []
+        counts = []
         for item in order.items.all():
             __item = item.product.product
             colors.append(item.product)
             items.append(__item)
+            counts.append(item.count)
 
         items = SimpleProductSerializer(items, many=True)
         colors = SimpleColorSerializer(colors, many=True)
         msg = {
             "products": items.data,
-            "colors": colors.data
+            "colors": colors.data,
+            "counts": counts
         }
 
         return Response(
@@ -229,11 +235,19 @@ def set_address(request, refer_code):
         return Response(
             {"msg": "You must authenticate!"}
         )
-
     order = get_object_or_404(Orders, customer=user, refer_code=refer_code)
     address = get_object_or_404(Address, owner=user, pk=address_id)
     order.address = address
     order.calc_discount()
     order.save()
+    transaction = Transaction.objects.create(
+        customer=user,
+        status="w",
+        refer_code=order.refer_code,
+        order=order,
+        amount=order.total_price
+
+    )
+    transaction.save()
     return Response("Success", status=200)
 

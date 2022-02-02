@@ -1,11 +1,31 @@
 from rest_framework import serializers
 from .models import Orders, Transaction, OrderItem, Discount
 from product.models import Color, Product
-
-from rest_framework.validators import UniqueValidator
 import uuid
 from user.models import Images
 from user.serializers import AddressSerializer
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Images
+        fields = ["image"]
+
+class OwnerSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.CharField()
+    username = serializers.CharField()
+    images = ImageSerializer(many=True)
+    address = AddressSerializer(many=True)
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    customer = OwnerSerializer()
+    class Meta:
+        model = Transaction
+        fields = "__all__"
+        depth = 1
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
@@ -21,35 +41,14 @@ class SimpleColorSerializer(serializers.ModelSerializer):
         fields = ["price", "color"]
         depth = 1
 
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Images
-        fields = ["image"]
-
-
-class OwnerSerializer(serializers.Serializer):
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    email = serializers.CharField()
-    username = serializers.CharField()
-    images = ImageSerializer(many=True)
-    address = AddressSerializer(many=True)
-
 
 class OrderSerializer(serializers.ModelSerializer):
     customer = OwnerSerializer()
+    transaction = TransactionSerializer(many=True)
 
     class Meta:
         model = Orders
         fields = "__all__"
-        # depth = 1
-
-
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = "__all__"
-        depth = 1
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

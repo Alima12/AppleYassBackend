@@ -9,6 +9,7 @@ from product.models import Product
 from django.shortcuts import get_object_or_404
 
 
+
 class CommentsListView(ListAPIView):
     queryset = Comments.objects.all()
     serializer_class = CommentSerializer
@@ -95,3 +96,44 @@ def dislike(request, code):
         "likes": comment["likes"],
         "dislikes": comment["dislikes"],
     })
+
+
+@api_view(['POST'])
+def accept(request, id):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    comment = get_object_or_404(Comments, id=id)
+    comment.status = "a"
+    comment.save()
+    comment = CommentSerializer(comment)
+
+    return Response(comment.data)
+
+
+@api_view(['POST'])
+def reject(request, id):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    comment = get_object_or_404(Comments, id=id)
+    comment.status = "r"
+    comment.save()
+
+    return Response(status=204)
+
+
+@api_view(['DELETE'])
+def delete(request, id):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    comment = get_object_or_404(Comments, id=id)
+    comment.delete()
+    return Response(status=204)
