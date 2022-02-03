@@ -1,6 +1,13 @@
 from .serializers import SlidesSerializer, WebTitlesSerializer, CertificatesSerializer, SuperOfferSerializer
 from .models import SlideImages, WebTitles, Certifications, SuperOffer
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    CreateAPIView,
+    UpdateAPIView,
+    RetrieveUpdateDestroyAPIView
+)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -10,6 +17,14 @@ from rest_framework.permissions import IsAuthenticated
 
 
 class SlideListCreateView(ListCreateAPIView):
+    serializer_class = SlidesSerializer
+    permission_classes = [IsAuthenticated, AdminRequired]
+
+    def get_queryset(self):
+        return SlideImages.objects.all()
+
+
+class EditSlideView(RetrieveUpdateAPIView):
     serializer_class = SlidesSerializer
     permission_classes = [IsAuthenticated, AdminRequired]
 
@@ -28,6 +43,7 @@ class SlideListApiView(ListAPIView):
                 result.append(item)
         return result
 
+
 @api_view(['POST'])
 def reverse_state(request, id):
     user = request.user or None
@@ -43,6 +59,7 @@ def reverse_state(request, id):
         "msg": "Successfully",
         "state": slide.is_active
     })
+
 
 @api_view(['DELETE'])
 def delete(request, id):
@@ -62,6 +79,18 @@ class CertificateListApiView(ListAPIView):
     serializer_class = CertificatesSerializer
 
 
+class CreateCertificateApiView(CreateAPIView):
+    queryset = Certifications.objects.all()
+    serializer_class = CertificatesSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+
+
+class UpdateCertificateApiView(RetrieveUpdateDestroyAPIView):
+    queryset = Certifications.objects.all()
+    serializer_class = CertificatesSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+
+
 class WebTitlesView(APIView):
     serializer_class = WebTitlesSerializer
 
@@ -71,6 +100,12 @@ class WebTitlesView(APIView):
         return Response(
             title.data
         )
+
+
+class UpdateWebTitlesView(UpdateAPIView):
+    serializer_class = WebTitlesSerializer
+    queryset = WebTitles.objects.all()
+    permission_classes = (IsAuthenticated, AdminRequired)
 
 
 class SuperOfferObjectView(APIView):

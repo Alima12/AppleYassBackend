@@ -3,18 +3,25 @@ from .models import SlideImages, WebTitles, Certifications, SuperOffer
 
 
 class SlidesSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False)
+
     class Meta:
         model = SlideImages
         fields = "__all__"
 
 
 class WebTitlesSerializer(serializers.ModelSerializer):
+    logo = serializers.ImageField(required=False)
+
     class Meta:
         model = WebTitles
         fields = "__all__"
 
 
 class CertificatesSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False)
+    title = serializers.CharField(required=False)
+
     class Meta:
         model = Certifications
         fields = "__all__"
