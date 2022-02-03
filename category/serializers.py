@@ -12,7 +12,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ["parent_id", "name", "title", "image", "parent", "children"]
+        fields = ["id", "parent_id", "name", "title", "image", "parent", "children"]
         depth = 1
 
 
@@ -20,10 +20,12 @@ class CategorySerializer(serializers.ModelSerializer):
         parent = None
         if "parent_id" in validated_data.keys():
             parent = Category.objects.get(id=validated_data["parent_id"])
+        image = validated_data["image"] or None
         category = Category.objects.create(
             name=validated_data["name"],
             title=validated_data["title"],
-            parent=parent
+            parent=parent,
+            image=image
         )
         category.save()
 
