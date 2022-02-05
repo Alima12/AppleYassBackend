@@ -1,6 +1,32 @@
 from rest_framework import serializers
-from .models import Product, Color
+from .models import Product, Color, ProductImages, ProductAttributes, TechnicalAttributes
+from category.models import Category
 from rest_framework.validators import UniqueValidator
+from django.shortcuts import get_object_or_404
+from category.serializers import CategorySerializer
+
+
+class TechSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+    text = serializers.CharField(required=False)
+
+    class Meta:
+        model = TechnicalAttributes
+        fields = "__all__"
+
+
+class AttrSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(required=False)
+
+    class Meta:
+        model = ProductAttributes
+        fields = "__all__"
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImages
+        fields = "__all__"
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -36,21 +62,48 @@ class ColorSerializer(serializers.ModelSerializer):
         return color
 
 
+class SimpleColorSerializer(serializers.ModelSerializer):
+    price = serializers.IntegerField(required=False)
+    inventory = serializers.IntegerField(required=False)
+    color = serializers.CharField(required=False)
+
+    class Meta:
+        model = Color
+        fields = ["id", "price", "inventory", "color", "product"]
+
+
 class ProductSerializer(serializers.ModelSerializer):
+    colors = SimpleColorSerializer(many=True, required=False)
+    images = ImageSerializer(many=True, required=False)
+    category_id = serializers.CharField(
+        max_length=50,
+        write_only=True,
+        required=False
+    )
+
+    def validate(self, attrs):
+        if "category_id" in attrs.keys():
+            category = get_object_or_404(Category, id=attrs["category_id"])
+            attrs["category"] = category
+        return attrs
+
     class Meta:
         model = Product
         fields = [
+            "id",
             "code",
             "created_at",
             "updated_at",
             "title",
             "name",
+            "colors",
             "guarantee",
             "is_super_offer",
             "is_special_offer",
             "is_new",
             "is_hot",
             "category",
+            "category_id",
             "images",
             "attributes",
             "technical",
@@ -74,6 +127,11 @@ class CreateProductSerializer(serializers.Serializer):
         max_length=50,
         required=True
     )
+    category_id = serializers.CharField(
+        max_length=50,
+        write_only=True,
+        required=False
+    )
     detail = serializers.CharField(
         required=True
     )
@@ -92,8 +150,12 @@ class CreateProductSerializer(serializers.Serializer):
     is_hot = serializers.BooleanField(
         default=False
     )
+    images = ImageSerializer(many=True)
 
     def validate(self, attrs):
+        if "category_id" in attrs.keys():
+            category = get_object_or_404(Category, id=attrs["category_id"])
+            attrs["category"] = category
         return attrs
 
     def create(self, validated_data):
@@ -102,7 +164,8 @@ class CreateProductSerializer(serializers.Serializer):
             title=validated_data['title'],
             name=validated_data['name'],
             detail=validated_data['detail'],
-            guarantee=validated_data['guarantee']
+            guarantee=validated_data['guarantee'],
+            category=validated_data['category'],
         )
         if 'is_super_offer' in validated_data.keys():
             product.is_super_offer = validated_data['is_super_offer']

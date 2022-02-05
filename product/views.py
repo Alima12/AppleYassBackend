@@ -1,10 +1,20 @@
-from .serializers import ProductSerializer, CreateProductSerializer, ColorSerializer
+from .serializers import (
+    ProductSerializer,
+    CreateProductSerializer,
+    ColorSerializer,
+    ImageSerializer,
+    SimpleColorSerializer,
+    AttrSerializer,
+    TechSerializer,
+)
+
 from rest_framework.generics import (
     ListAPIView,
     RetrieveUpdateDestroyAPIView,
     ListCreateAPIView,
+    UpdateAPIView,
 )
-from .models import Product, Color, ProductImages
+from .models import Product, Color, ProductImages, TechnicalAttributes, ProductAttributes
 from .permission import IsAdminOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -13,7 +23,7 @@ from rest_framework.response import Response
 from .pagination import ProductPagination
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import filters
+from rest_framework.decorators import api_view
 
 
 class ProductListView(ListAPIView):
@@ -27,6 +37,7 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'code'
+
 
 
 def set_product_image(product, files):
@@ -58,10 +69,47 @@ class CreateProductView(APIView):
             return Response(product.errors, status=400)
 
 
+class UpdateProductView(UpdateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = Product.objects.all()
+    lookup_field = "code"
+
+
+@api_view(['POST', "DELETE"])
+def AddImage(request, code, id=None):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    product = get_object_or_404(Product, code=code)
+    if request.method == "POST":
+        data = request.FILES
+        image = ProductImages.objects.create(
+            image=data["image"],
+            product=product
+        )
+        image.save()
+        images = ImageSerializer(image)
+        return Response(images.data, status=201)
+    if request.method == "DELETE":
+        image = get_object_or_404(ProductImages, id=id)
+        image.delete()
+        return Response(status=204)
+
+
 class CreateColorView(ListCreateAPIView):
     serializer_class = ColorSerializer
     permission_classes = (IsAuthenticated, AdminRequired)
     queryset = Color.objects.all()
+
+
+class UpdateColorView(UpdateAPIView):
+    serializer_class = SimpleColorSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = Color.objects.all()
+    lookup_field = "id"
 
 
 class GetColorView(APIView):
@@ -73,6 +121,25 @@ class GetColorView(APIView):
         return Response(
             response.data
         )
+
+@api_view(['POST', "DELETE"])
+def SetColor(request, code, id=None):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    product = get_object_or_404(Product, code=code)
+    if request.method == "POST":
+        color = Color.objects.create(product=product)
+        data = SimpleColorSerializer(color)
+        return Response(data.data, status=201)
+    if request.method == "DELETE":
+        color = get_object_or_404(Color, id=id)
+        color.delete()
+        return Response(status=204)
+
+
 
 
 class GetNewProducts(ListAPIView):
@@ -115,7 +182,6 @@ class RelatedProductsView(ListAPIView):
 
 class FilterProducts(ListAPIView):
     serializer_class = ProductSerializer
-    # queryset = Product.objects.all()
     pagination_class = ProductPagination
     filterset_fields = ['category__name', ]
     search_fields = ["title", "name"]
@@ -134,4 +200,53 @@ class FilterProducts(ListAPIView):
         return products
 
 
+class UpdateTechView(UpdateAPIView):
+    serializer_class = TechSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = TechnicalAttributes.objects.all()
+    lookup_field = "id"
 
+
+@api_view(['POST', "DELETE"])
+def manage_tech(request, code, id=None):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    product = get_object_or_404(Product, code=code)
+    if request.method == "POST":
+        tech = TechnicalAttributes.objects.create(product=product)
+        tech.save()
+        data = TechSerializer(tech)
+        return Response(data.data, status=201)
+    if request.method == "DELETE":
+        tech = get_object_or_404(TechnicalAttributes, id=id)
+        tech.delete()
+        return Response(status=204)
+
+
+class UpdateAttrView(UpdateAPIView):
+    serializer_class = AttrSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = ProductAttributes.objects.all()
+    lookup_field = "id"
+
+
+@api_view(['POST', "DELETE"])
+def manage_attributes(request, code, id=None):
+    user = request.user or None
+    if user is None:
+        return Response({"message": "Who Are You?"})
+    if not user.is_admin:
+        return Response({"message": "You dont have permission!"})
+    product = get_object_or_404(Product, code=code)
+    if request.method == "POST":
+        attr = ProductAttributes.objects.create(product=product)
+        attr.save()
+        data = AttrSerializer(attr)
+        return Response(data.data, status=201)
+    if request.method == "DELETE":
+        attr = get_object_or_404(ProductAttributes, id=id)
+        attr.delete()
+        return Response(status=204)
