@@ -150,7 +150,7 @@ class CreateProductSerializer(serializers.Serializer):
     is_hot = serializers.BooleanField(
         default=False
     )
-    images = ImageSerializer(many=True)
+    # images = ImageSerializer(many=True)
 
     def validate(self, attrs):
         if "category_id" in attrs.keys():

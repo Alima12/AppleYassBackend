@@ -39,7 +39,6 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'code'
 
 
-
 def set_product_image(product, files):
     images = []
     product = Product.objects.get(code=product["code"])
@@ -122,6 +121,7 @@ class GetColorView(APIView):
             response.data
         )
 
+
 @api_view(['POST', "DELETE"])
 def SetColor(request, code, id=None):
     user = request.user or None
@@ -132,14 +132,20 @@ def SetColor(request, code, id=None):
     product = get_object_or_404(Product, code=code)
     if request.method == "POST":
         color = Color.objects.create(product=product)
+        data = request.POST
+        if "price" in data.keys():
+            color.price = data["price"]
+        if "inventory" in data.keys():
+            color.inventory = data["inventory"]
+        if "color" in data.keys():
+            color.color = data["color"]
+        color.save()
         data = SimpleColorSerializer(color)
         return Response(data.data, status=201)
     if request.method == "DELETE":
         color = get_object_or_404(Color, id=id)
         color.delete()
         return Response(status=204)
-
-
 
 
 class GetNewProducts(ListAPIView):
@@ -216,7 +222,12 @@ def manage_tech(request, code, id=None):
         return Response({"message": "You dont have permission!"})
     product = get_object_or_404(Product, code=code)
     if request.method == "POST":
+        data = request.POST
         tech = TechnicalAttributes.objects.create(product=product)
+        if "name" in data.keys():
+            tech.name = data["name"]
+        if "text" in data.keys():
+            tech.text = data["text"]
         tech.save()
         data = TechSerializer(tech)
         return Response(data.data, status=201)
@@ -242,7 +253,10 @@ def manage_attributes(request, code, id=None):
         return Response({"message": "You dont have permission!"})
     product = get_object_or_404(Product, code=code)
     if request.method == "POST":
+        data = request.POST
         attr = ProductAttributes.objects.create(product=product)
+        if "text" in data.keys():
+            attr.text = data["text"]
         attr.save()
         data = AttrSerializer(attr)
         return Response(data.data, status=201)
