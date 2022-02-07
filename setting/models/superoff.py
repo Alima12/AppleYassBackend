@@ -2,6 +2,7 @@ from django.db import models
 from utils.general_model import GeneramModel
 import uuid
 from datetime import datetime
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 import os
 
@@ -50,7 +51,7 @@ class SuperOffer(GeneramModel):
     )
 
     def is_active(self):
-        if self.till > datetime.now():
+        if self.till > timezone.now():
             return True
         return False
 

@@ -116,11 +116,37 @@ class SuperOfferObjectView(APIView):
         instance.total_price = instance.product.get_price(instance)
         return instance
 
-
     def get(self, request):
         offer = SuperOffer.objects.last()
         offer = self.set_discount_prices(offer)
-        offer = SuperOfferSerializer(offer)
-        return Response(
-            offer.data
-        )
+        if offer.is_active():
+            offer = SuperOfferSerializer(offer)
+            return Response(
+                offer.data
+            )
+        else:
+            return Response("فعلا پیشنهادی موجود نیست")
+
+
+class SuperOffersView(ListCreateAPIView):
+    serializer_class = SuperOfferSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+
+    def get_queryset(self):
+        offers = SuperOffer.objects.all()
+        for offer in offers:
+            offer.users = offer.customers.count()
+        return offers
+
+
+class SuperOfferUpdateView(RetrieveUpdateDestroyAPIView):
+    serializer_class = SuperOfferSerializer
+    permission_classes = (IsAuthenticated, AdminRequired)
+    queryset = SuperOffer.objects.all()
+    lookup_field = "id"
+
+
+
+
+
+

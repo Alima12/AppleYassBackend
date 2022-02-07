@@ -11,6 +11,8 @@ from .views import (
     CreateCertificateApiView,
     UpdateCertificateApiView,
     UpdateWebTitlesView,
+    SuperOffersView,
+    SuperOfferUpdateView,
 )
 
 name = "Config"
@@ -34,6 +36,8 @@ urlpatterns = [
 
 
     path("super-offer/", SuperOfferObjectView.as_view(), name="get-super-offer"),
+    path("super-offer/list/", SuperOffersView.as_view(), name="super-offer-list"),
+    path("super-offer/<int:id>/edit/", SuperOfferUpdateView.as_view(), name="super-offer-detail"),
 
     path("", WebTitlesView.as_view(), name="web-title"),
 ]
