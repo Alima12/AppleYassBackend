@@ -13,6 +13,7 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     ListCreateAPIView,
     UpdateAPIView,
+    RetrieveAPIView
 )
 from .models import Product, Color, ProductImages, TechnicalAttributes, ProductAttributes
 from .permission import IsAdminOrReadOnly
@@ -108,6 +109,12 @@ class UpdateColorView(UpdateAPIView):
     serializer_class = SimpleColorSerializer
     permission_classes = (IsAuthenticated, AdminRequired)
     queryset = Color.objects.all()
+    lookup_field = "id"
+
+
+class GetColorWithId(RetrieveAPIView):
+    queryset = Color.objects.all()
+    serializer_class = SimpleColorSerializer
     lookup_field = "id"
 
 

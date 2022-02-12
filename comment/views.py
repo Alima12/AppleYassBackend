@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from utils.base_permissions import AdminRequired
 from product.models import Product
 from django.shortcuts import get_object_or_404
-
+from django.contrib.auth.models import AnonymousUser
 
 
 class CommentsListView(ListAPIView):
@@ -32,17 +32,18 @@ class AddCommentView(CreateAPIView):
         product = kwargs["product_code"]
         product = get_object_or_404(Product, code=product)
         content = received_data["content"]
-        user = request.user or None
+        user = request.user
         parent = None
         if "parent_id" in received_data.keys():
             parent = get_object_or_404(Comments, id=int(received_data["parent_id"])) or None
 
         comment = Comments.objects.create(
-            owner=user,
             content=content,
             product=product,
             parent=parent,
         )
+        if user.is_authenticated:
+            comment.owner = user
         comment.save()
         comment = AddCommentSerializer(comment)
 

@@ -17,6 +17,7 @@ from .views import (
     manage_tech,
     manage_attributes,
     UpdateAttrView,
+    GetColorWithId,
 )
 
 urlpatterns = [
@@ -24,6 +25,7 @@ urlpatterns = [
     path('searching/', FilterProducts.as_view(), name="searching"),
     path('<str:code>/', ProductDetailView.as_view(), name="product-detail"),
     path('<str:code>/related/', RelatedProductsView.as_view(), name="related-product"),
+    path('<int:id>/color/', GetColorWithId.as_view(), name="get-color"),
 
     path('<str:code>/colors/', GetColorView.as_view(), name="product-colors"),
 

@@ -3,7 +3,6 @@ from .models import Product, Color, ProductImages, ProductAttributes, TechnicalA
 from category.models import Category
 from rest_framework.validators import UniqueValidator
 from django.shortcuts import get_object_or_404
-from category.serializers import CategorySerializer
 
 
 class TechSerializer(serializers.ModelSerializer):
@@ -62,10 +61,19 @@ class ColorSerializer(serializers.ModelSerializer):
         return color
 
 
+class SimpleProductSerializer(serializers.ModelSerializer):
+    images = ImageSerializer(many=True, required=False)
+
+    class Meta:
+        model = Product
+        fields = ["id", "images", "code", "name", "title"]
+
+
 class SimpleColorSerializer(serializers.ModelSerializer):
     price = serializers.IntegerField(required=False)
     inventory = serializers.IntegerField(required=False)
     color = serializers.CharField(required=False)
+    product = SimpleProductSerializer(required=False)
 
     class Meta:
         model = Color
@@ -150,7 +158,6 @@ class CreateProductSerializer(serializers.Serializer):
     is_hot = serializers.BooleanField(
         default=False
     )
-    # images = ImageSerializer(many=True)
 
     def validate(self, attrs):
         if "category_id" in attrs.keys():
